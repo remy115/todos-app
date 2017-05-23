@@ -58,3 +58,32 @@ describe('POST /todos',()=>{
         })
     })
 });
+
+const todos=[
+    {
+        text:'first test todo!'
+    },
+    {
+        text:'second test todo!'
+    }
+];
+
+describe('GET /todos',()=>{
+    beforeEach((done)=>{
+        Todo.deleteMany({}).then(()=>{
+            Todo.insertMany(todos).then((res)=>{
+                done();
+            },(err)=>done(err));
+        },done);
+    });
+
+    it('should load todos',(done)=>{
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((resp)=>{
+                expect(resp.body.todos.length).toBe(2);
+            }).end(()=>done());
+    });
+});
+
