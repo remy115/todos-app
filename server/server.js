@@ -94,6 +94,24 @@ app.patch('/todos/:id',(req,resp)=>{
 });
 
 
+
+app.post('/users',(req,resp)=>{
+    var userObj=_.pick(req.body,['email','password']);
+    var user=new User(userObj);
+    user.save().then(()=>{
+        var token1=user.generateAuthToken();
+        console.log('token1',token1);
+        return token1;
+        // resp.send(user);
+    }).then((token)=>{
+        resp.header('x-auth',token).send(user);
+    }).catch((e)=>{
+        // console.log('erro em POST /users',typeof(e),e.toString());
+        resp.status(406).send(e.toString());
+    });
+});
+
+
 app.listen(port,()=>{
     console.log(`App started up at port ${port}`);
 });
