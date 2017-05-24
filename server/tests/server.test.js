@@ -1,5 +1,6 @@
 const expect=require('expect');
 const request=require('supertest');
+const {ObjectID}=require('mongodb');
 
 var {app}=require('./../server');
 var {Todo}=require('./../models/todo');
@@ -61,9 +62,11 @@ describe('POST /todos',()=>{
 
 const todos=[
     {
+        _id:new ObjectID(),
         text:'first test todo!'
     },
     {
+        _id:new ObjectID(),
         text:'second test todo!'
     }
 ];
@@ -87,3 +90,30 @@ describe('GET /todos',()=>{
     });
 });
 
+describe('GET /todos/:id',()=>{
+    it('should return a todo',(done)=>{
+        request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res)=>{
+                expect(res.body.todo.text).toBe(todos[0].text);
+            }).end(done);
+    });
+
+    it('should return 404 for a valid id but inexistant',(done)=>{
+        var id=new ObjectID('123oijfken28');
+        // var id=todos[0]._id.toHexString();
+        // console.log(id.toHexString());
+        request(app)
+            .get(`/todos/${id}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 for an invalid id',(done)=>{
+        request(app)
+            .get('/todos/2j23cc')
+            .expect(404)
+            .end(done);
+    });
+});
