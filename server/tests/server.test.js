@@ -67,7 +67,9 @@ const todos=[
     },
     {
         _id:new ObjectID(),
-        text:'second test todo!'
+        text:'second test todo!',
+        completed:true,
+        completedAt:3345
     }
 ];
 
@@ -120,7 +122,7 @@ describe('GET /todos/:id',()=>{
 
 
 describe('DELETE /todos/:id',()=>{
-    it('should delete a todo',(done)=>{
+    /* it('should delete a todo',(done)=>{
         request(app)
             .delete(`/todos/${todos[0]._id.toHexString()}`)
             .expect(200)
@@ -134,7 +136,7 @@ describe('DELETE /todos/:id',()=>{
                     done();
                 }).catch(done);
             });
-    });
+    }); */
 
     it('should return 404 for a valid id but inexistant',(done)=>{
         var id=new ObjectID('123oijfken28');
@@ -153,4 +155,35 @@ describe('DELETE /todos/:id',()=>{
             .end(done);
     });
 
+});
+
+
+describe('PATCH /todos/:id',()=>{
+    it('should update todo, also with completed\'s values',(done)=>{
+        var id=todos[0]._id.toHexString();
+        var newText='new text of first todo';
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({text:newText,completed:true})
+            .expect(200)
+            .expect((resp)=>{
+                expect(resp.body.todo.text).toBe(newText);
+                expect(resp.body.todo.completed).toExist();
+                expect(resp.body.todo.completedAt).toBeA('number');
+            }).end(done);
+    });
+
+    it('should update second to setting completedAt to null and completed to false',(done)=>{
+        var id=todos[1]._id.toHexString();
+        var newText='new text of second todo';
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({text:newText,completed:false})
+            .expect(200)
+            .expect((resp)=>{
+                expect(resp.body.todo.text).toBe(newText);
+                expect(resp.body.todo.completed).toNotExist();
+                expect(resp.body.todo.completedAt).toNotExist();
+            }).end(done);
+    });
 });
