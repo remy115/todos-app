@@ -117,3 +117,40 @@ describe('GET /todos/:id',()=>{
             .end(done);
     });
 });
+
+
+describe('DELETE /todos/:id',()=>{
+    it('should delete a todo',(done)=>{
+        request(app)
+            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((resp)=>{
+                expect(resp.body.todo._id).toBe(todos[0]._id.toHexString());
+            }).end((err,resp)=>{
+                if(err) return done(err);
+
+                Todo.findById(todos[0]._id.toHexString()).then((todo)=>{
+                    expect(todo).toNotExist();
+                    done();
+                }).catch(done);
+            });
+    });
+
+    it('should return 404 for a valid id but inexistant',(done)=>{
+        var id=new ObjectID('123oijfken28');
+        // var id=todos[0]._id.toHexString();
+        // console.log(id.toHexString());
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 for an invalid id',(done)=>{
+        request(app)
+            .delete('/todos/2j23cc')
+            .expect(404)
+            .end(done);
+    });
+
+});
