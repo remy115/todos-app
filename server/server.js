@@ -101,7 +101,6 @@ app.post('/users',(req,resp)=>{
     var user=new User(userObj);
     user.save().then(()=>{
         var token1=user.generateAuthToken();
-        console.log('token1',token1);
         return token1;
         // resp.send(user);
     }).then((token)=>{
