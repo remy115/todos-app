@@ -104,7 +104,7 @@ app.post('/users',(req,resp)=>{
         return token1;
         // resp.send(user);
     }).then((token)=>{
-        resp.header('x-auth',token).send(user);
+        resp.header('x-auth',token).send({user});
     }).catch((e)=>{
         // console.log('erro em POST /users',typeof(e),e.toString());
         resp.status(406).send(e.toString());

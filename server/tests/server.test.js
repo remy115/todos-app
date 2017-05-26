@@ -1,9 +1,15 @@
 const expect=require('expect');
 const request=require('supertest');
 const {ObjectID}=require('mongodb');
+const jwt=require('jsonwebtoken');
 
 var {app}=require('./../server');
 var {Todo}=require('./../models/todo');
+var {todos,populateTodos,users,populateUsers}=require('./seed/seed');
+
+beforeEach(populateUsers);
+beforeEach(populateTodos);
+
 
 describe('POST /todos',()=>{
     var text='testing todo insertion';
@@ -60,27 +66,9 @@ describe('POST /todos',()=>{
     })
 });
 
-const todos=[
-    {
-        _id:new ObjectID(),
-        text:'first test todo!'
-    },
-    {
-        _id:new ObjectID(),
-        text:'second test todo!',
-        completed:true,
-        completedAt:3345
-    }
-];
+
 
 describe('GET /todos',()=>{
-    beforeEach((done)=>{
-        Todo.deleteMany({}).then(()=>{
-            Todo.insertMany(todos).then((res)=>{
-                done();
-            },(err)=>done(err));
-        },done);
-    });
 
     it('should load todos',(done)=>{
         request(app)
@@ -185,5 +173,79 @@ describe('PATCH /todos/:id',()=>{
                 expect(resp.body.todo.completed).toNotExist();
                 expect(resp.body.todo.completedAt).toNotExist();
             }).end(done);
+    });
+});
+
+
+// USERS
+describe('POST /users',()=>{
+
+    it('should return a user if authenticated',(done)=>{
+        request(app)
+        .get('/users/me')
+        .set('x-auth',users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.email).toBe(users[0].email);
+            expect(res.body._id).toBe(users[0]._id.toHexString());
+        }).end(done);
+    });
+
+    it('should not return a user if not authenticated',(done)=>{
+        request(app)
+            .get('/users/me')
+            .send()
+            .expect(401)
+            .expect((resp)=>{
+                expect(resp.body).toEqual({});
+            }).end(done);
+    });
+
+
+    it('should create a user and its token and return it',(done)=>{
+        var newUser={
+            email:'newuser@testing.com',
+            password:'test123'
+        };
+        request(app)
+        .post('/users')
+        .send(newUser)
+        .expect(200)
+        .expect((resp)=>{
+            // console.log('resp',resp);
+            expect(resp.body.user.email).toBe(newUser.email);
+            var newId=resp.body.user._id;
+            var x_auth=resp.headers['x-auth'];
+            var token=jwt.sign({_id:newId,access:'auth'},'abc123');
+            expect(token).toBe(x_auth);
+        }).end(done);
+    });
+
+    it('should return validation errors',(done)=>{
+        request(app)
+            .post('/users')
+            .send({
+                email:'invalid@email',
+                password:'2j3j4j'
+            })
+            .expect(406)
+            .end(done);
+    });
+
+    it('should not create user if email is duplicated',(done)=>{
+        // var email=users[0].email.replace('email1','email333');
+        var email=users[0].email;
+        request(app)
+            .post('/users')
+            .send({
+                email:email,
+                password:'2j3j4j5'
+            })
+            .expect(406)
+            .expect((resp)=>{
+                console.log(resp.body);
+                return true;
+            }).end((e)=>done(e));
     });
 });
