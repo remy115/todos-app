@@ -3,6 +3,7 @@ const _ =require('lodash');
 const express=require('express');
 const bodyParser=require('body-parser');
 const {ObjectID}=require('mongodb');
+// const bcrypt=require('bcryptjs');
 
 var {mongoose}=require('./db/mongoose');
 var {Todo}=require('./models/todo');
@@ -108,6 +109,21 @@ app.post('/users',(req,resp)=>{
     }).catch((e)=>{
         // console.log('erro em POST /users',typeof(e),e.toString());
         resp.status(406).send(e.toString());
+    });
+});
+
+
+// LOGIN
+app.post('/users/login',(req,resp)=>{
+    var email=req.body.email;
+    var pass=req.body.password;
+    // resp.send({email,pass});
+    User.findByCredentials(email,pass).then((user)=>{
+        return user.generateAuthToken().then((token)=>{
+            return resp.header('x-auth',token).send({user});
+        });
+    }).catch((e)=>{
+        resp.status(400).send(e);
     });
 });
 
