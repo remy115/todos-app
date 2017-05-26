@@ -294,3 +294,35 @@ describe('POST /users/login',()=>{
             });
     });
 });
+
+
+describe('DELETE /users/me/token',()=>{
+    var user=users[0];
+    it('should delete a token',(done)=>{
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth',user.tokens[0].token)
+            // .send()
+            .expect(200)
+            .end((err,resp)=>{
+                User.findOne({_id:user._id,"tokens.token":user.tokens[0].token}).then((user)=>{
+                    if(user) {
+                        return done('failed333!');
+                    }
+                    done();
+                }).catch((e)=>{
+                    console.log('###########',e,'#################');
+                    done();
+                });
+            });
+    });
+
+    it('should deny for a non-logged access',(done)=>{
+        request(app)
+            .delete('/users/me/token')
+            .send()
+            .expect(401)
+            .end(done);
+    });
+
+});
