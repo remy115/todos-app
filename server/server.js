@@ -117,6 +117,7 @@ app.post('/users',(req,resp)=>{
 app.post('/users/login',(req,resp)=>{
     var email=req.body.email;
     var pass=req.body.password;
+    // console.log(`email: ${email}, pass: ${pass}`);
     // resp.send({email,pass});
     User.findByCredentials(email,pass).then((user)=>{
         return user.generateAuthToken().then((token)=>{

@@ -41,6 +41,7 @@ const populateTodos=(done)=>{
 };
 
 const populateUsers=(done)=>{
+    // console.log('##################################### POPULATEUSER!! ###################################################');
     User.remove({}).then(()=>{
         var user1=new User(users[0]).save();
         var user2=new User(users[1]).save();

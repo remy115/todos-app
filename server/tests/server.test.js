@@ -5,6 +5,7 @@ const jwt=require('jsonwebtoken');
 
 var {app}=require('./../server');
 var {Todo}=require('./../models/todo');
+var {User}=require('./../models/user');
 var {todos,populateTodos,users,populateUsers}=require('./seed/seed');
 
 beforeEach(populateUsers);
@@ -244,8 +245,52 @@ describe('POST /users',()=>{
             })
             .expect(406)
             .expect((resp)=>{
-                console.log(resp.body);
+                // console.log(resp.body);
+                expect(resp.body).toEqual({});
                 return true;
             }).end((e)=>done(e));
+    });
+});
+
+
+describe('POST /users/login',()=>{
+    var user=users[0];
+    it('should authenticate successfully',(done)=>{
+        request(app)
+            .post('/users/login')
+            .send(user)
+            .expect(200)
+            .expect((resp)=>{
+                expect(resp.headers['x-auth']).toExist();
+                expect(user.email).toBe(resp.body.user.email);
+            }).end((err,resp)=>{
+                if(err) return done(err);
+                return User.findById(resp.body.user._id).then((user)=>{
+                    expect(user.tokens).toInclude({token:resp.headers['x-auth'],access:'auth'},(a,b)=>{
+                        /* console.log('aaaaaaaaaaaaa',a);
+                        console.log('bbbbbbbbbbbbbbbb',b); */
+                        return a.token === b.token && a.access === b.access
+                    });
+                    done();
+                }).catch((e)=>done(e));
+            });
+    });
+
+    it('should not authenticate',(done)=>{
+        request(app)
+            .post('/users/login')
+            .send({email:user.email,password:'22j2j'})
+            .expect(400)
+            .expect((resp)=>{
+                expect(resp.body.email).toNotExist();
+            }).end((err,resp)=>{
+                if(err) return done(err);
+                User.findById(user._id.toHexString()).then((user)=>{
+                    expect(user.tokens.length).toBe(1);
+                    done();
+                }).catch((e)=>{
+                    done(e);
+                });
+            });
     });
 });
