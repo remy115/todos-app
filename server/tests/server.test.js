@@ -25,6 +25,7 @@ describe('POST /todos',()=>{
     it('should insert a todo',(done)=>{
         request(app)
         .post('/todos')
+        .set('x-auth',users[0].tokens[0].token)
         .send({text})
         .expect(200)
         .expect((resp)=>{
@@ -56,6 +57,7 @@ describe('POST /todos',()=>{
     it('should not insert a todo',(done)=>{
         request(app)
         .post('/todos')
+        .set('x-auth',users[0].tokens[0].token)
         .send({})
         .expect(400)
         .end((err,res)=>{
@@ -74,9 +76,10 @@ describe('GET /todos',()=>{
     it('should load todos',(done)=>{
         request(app)
             .get('/todos')
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .expect((resp)=>{
-                expect(resp.body.todos.length).toBe(2);
+                expect(resp.body.todos.length).toBe(1);
             }).end(()=>done());
     });
 });
@@ -85,6 +88,7 @@ describe('GET /todos/:id',()=>{
     it('should return a todo',(done)=>{
         request(app)
             .get(`/todos/${todos[0]._id.toHexString()}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .expect((res)=>{
                 expect(res.body.todo.text).toBe(todos[0].text);
@@ -97,6 +101,7 @@ describe('GET /todos/:id',()=>{
         // console.log(id.toHexString());
         request(app)
             .get(`/todos/${id}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -104,6 +109,7 @@ describe('GET /todos/:id',()=>{
     it('should return 404 for an invalid id',(done)=>{
         request(app)
             .get('/todos/2j23cc')
+            .set('x-auth',users[0].tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -111,9 +117,10 @@ describe('GET /todos/:id',()=>{
 
 
 describe('DELETE /todos/:id',()=>{
-    /* it('should delete a todo',(done)=>{
+    it('should delete a todo',(done)=>{
         request(app)
             .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .expect((resp)=>{
                 expect(resp.body.todo._id).toBe(todos[0]._id.toHexString());
@@ -125,7 +132,21 @@ describe('DELETE /todos/:id',()=>{
                     done();
                 }).catch(done);
             });
-    }); */
+    });
+
+    it('should not delete a todo not owned',(done)=>{
+        var todo1=todos[1]._id.toHexString();
+        request(app)
+            .delete(`/todos/${todo1}`)
+            .set('x-auth',users[0].tokens[0].token)
+            .expect(401)
+            .end((err,resp)=>{
+                Todo.findById(todo1).then((todo)=>{
+                    expect(todo).toExist();
+                    done();
+                }).catch(done);
+            });
+    });
 
     it('should return 404 for a valid id but inexistant',(done)=>{
         var id=new ObjectID('123oijfken28');
@@ -133,6 +154,7 @@ describe('DELETE /todos/:id',()=>{
         // console.log(id.toHexString());
         request(app)
             .delete(`/todos/${id}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -140,6 +162,7 @@ describe('DELETE /todos/:id',()=>{
     it('should return 404 for an invalid id',(done)=>{
         request(app)
             .delete('/todos/2j23cc')
+            .set('x-auth',users[0].tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -153,6 +176,7 @@ describe('PATCH /todos/:id',()=>{
         var newText='new text of first todo';
         request(app)
             .patch(`/todos/${id}`)
+            .set('x-auth',users[0].tokens[0].token)
             .send({text:newText,completed:true})
             .expect(200)
             .expect((resp)=>{
@@ -167,6 +191,7 @@ describe('PATCH /todos/:id',()=>{
         var newText='new text of second todo';
         request(app)
             .patch(`/todos/${id}`)
+            .set('x-auth',users[1].tokens[0].token)
             .send({text:newText,completed:false})
             .expect(200)
             .expect((resp)=>{

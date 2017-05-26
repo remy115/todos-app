@@ -3,21 +3,23 @@ const {Todo}=require('./../../models/todo');
 const {User}=require('./../../models/user');
 const jwt=require('jsonwebtoken');
 
+const userOneId=new ObjectID();
+const userTwoId=new ObjectID();
 const todos=[
     {
         _id:new ObjectID(),
-        text:'first test todo!'
+        text:'first test todo!',
+        _creator:userOneId
     },
     {
         _id:new ObjectID(),
         text:'second test todo!',
         completed:true,
-        completedAt:3345
+        completedAt:3345,
+        _creator:userTwoId
     }
 ];
 
-const userOneId=new ObjectID();
-const userTwoId=new ObjectID();
 const users=[{
 _id:userOneId,
 email:'email1@email.com',
@@ -27,12 +29,18 @@ tokens:[{
     token:jwt.sign({_id:userOneId.toHexString(),access:'auth'},'abc123')
 }]
 },{
-    id:userTwoId,
+    _id:userTwoId,
     email:'email2@email.com',
-    password:'userTwoPass'
+    password:'userTwoPass',
+    tokens:[{
+        access:'auth',
+        token:jwt.sign({_id:userTwoId.toHexString(),access:'auth'},'abc123')
+}]
 }];
 
 const populateTodos=(done)=>{
+    // console.log('TODOS -- userOneId',userOneId.toHexString());
+    // console.log('TODOS -- userTwoId',userTwoId.toHexString());
     Todo.deleteMany({}).then(()=>{
         Todo.insertMany(todos).then((res)=>{
             done();
@@ -41,6 +49,8 @@ const populateTodos=(done)=>{
 };
 
 const populateUsers=(done)=>{
+    // console.log('USERS @@@ userOneId',userOneId.toHexString());
+    // console.log('USERS @@@ userTwoId',userTwoId.toHexString());
     // console.log('##################################### POPULATEUSER!! ###################################################');
     User.remove({}).then(()=>{
         var user1=new User(users[0]).save();
