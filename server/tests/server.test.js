@@ -243,7 +243,7 @@ describe('POST /users',()=>{
             expect(resp.body.user.email).toBe(newUser.email);
             var newId=resp.body.user._id;
             var x_auth=resp.headers['x-auth'];
-            var token=jwt.sign({_id:newId,access:'auth'},'abc123');
+            var token=jwt.sign({_id:newId,access:'auth'},process.env.JWT_SECRET).toString();
             expect(token).toBe(x_auth);
         }).end(done);
     });

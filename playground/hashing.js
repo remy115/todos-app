@@ -3,7 +3,7 @@ var jwt=require('jsonwebtoken');
 
 const bcrypt=require('bcryptjs');
 
-var pass='abc123';
+var pass=process.env.JWT_SECRET;
 var hashed;
 /* bcrypt.genSalt(10,(err,salt)=>{
     bcrypt.hash(pass,salt,(err,hash)=>{
@@ -26,8 +26,8 @@ bcrypt.compare(pass,hashed,(err,res)=>{
 
 /*
 var data={id:10};
-var token=jwt.sign(data,'abc123');
-var decode=jwt.verify(token,'abc123');
+var token=jwt.sign(data,process.env.JWT_SECRET);
+var decode=jwt.verify(token,process.env.JWT_SECRET);
 console.log('token',token);
 console.log('decode',decode);
 */

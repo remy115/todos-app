@@ -26,7 +26,7 @@ email:'email1@email.com',
 password:'userOnePass',
 tokens:[{
     access:'auth',
-    token:jwt.sign({_id:userOneId.toHexString(),access:'auth'},'abc123')
+    token:jwt.sign({_id:userOneId.toHexString(),access:'auth'},process.env.JWT_SECRET)
 }]
 },{
     _id:userTwoId,
@@ -34,7 +34,7 @@ tokens:[{
     password:'userTwoPass',
     tokens:[{
         access:'auth',
-        token:jwt.sign({_id:userTwoId.toHexString(),access:'auth'},'abc123')
+        token:jwt.sign({_id:userTwoId.toHexString(),access:'auth'},process.env.JWT_SECRET)
 }]
 }];
 
